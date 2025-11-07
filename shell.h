@@ -8,15 +8,12 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-#include <errno.h>
 
-/* External variable */
 extern char **environ;
 
-/* Function prototypes */
 void display_prompt(void);
 char *read_line(void);
-char **parse_line(char *line);
-int execute_command(char **args);
+int execute_command(char *command, char *program_name, int cmd_count);
+void print_error(char *program_name, int cmd_number, char *command);
 
-#endif /* SHELL_H */
+#endif

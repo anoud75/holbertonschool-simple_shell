@@ -20,16 +20,8 @@ char *read_line(void)
 		return (NULL);
 	}
 
-	/* Remove trailing newline */
 	if (characters > 0 && line[characters - 1] == '\n')
 		line[characters - 1] = '\0';
-
-	/* Skip empty lines */
-	if (line[0] == '\0')
-	{
-		free(line);
-		line = NULL;
-	}
 
 	return (line);
 }

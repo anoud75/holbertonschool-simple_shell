@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 			display_prompt();
 
 		line = read_line();
-		
+
 		if (line == NULL)
 		{
 			if (isatty(STDIN_FILENO))

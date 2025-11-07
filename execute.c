@@ -18,12 +18,6 @@ int execute_command(char *command, char *program_name, int cmd_count)
 	if (command == NULL || command[0] == '\0')
 		return (1);
 
-	/* Handle exit command (temporary, for testing) */
-	if (strcmp(command, "exit") == 0)
-	{
-		return (0);
-	}
-
 	if (stat(command, &st) == -1)
 	{
 		print_error(program_name, cmd_count, command);
@@ -45,7 +39,7 @@ int execute_command(char *command, char *program_name, int cmd_count)
 		if (execve(command, args, environ) == -1)
 		{
 			print_error(program_name, cmd_count, command);
-			exit(EXIT_FAILURE);
+			exit(2);
 		}
 	}
 	else
