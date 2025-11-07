@@ -20,5 +20,6 @@ char **parse_args(char *line);
 void free_args(char **args);
 char *get_path(char *command);
 char *find_command_in_path(char *command);
+int handle_builtin(char **args);
 
 #endif

@@ -6,12 +6,12 @@
  * @program_name: Name of the shell program (for error messages)
  * @cmd_count: Current command count
  *
- * Return: 1 to continue execution, 0 to exit
+ * Return: 1 to continue execution, -1 to exit, 0 for other
  */
 int execute_command(char *command, char *program_name, int cmd_count)
 {
 	pid_t pid;
-	int status;
+	int status, builtin_result;
 	char **args = NULL;
 	char *cmd_copy = NULL;
 	char *cmd_path = NULL;
@@ -31,10 +31,26 @@ int execute_command(char *command, char *program_name, int cmd_count)
 		return (1);
 	}
 
-	/* CRITICAL: Find command BEFORE forking */
+	/* Check if it's a built-in command */
+	builtin_result = handle_builtin(args);
+	if (builtin_result == -1)
+	{
+		/* Exit built-in */
+		free(cmd_copy);
+		free_args(args);
+		return (-1);
+	}
+	if (builtin_result == 1)
+	{
+		/* Built-in was executed */
+		free(cmd_copy);
+		free_args(args);
+		return (1);
+	}
+
+	/* Not a built-in, find command in PATH */
 	cmd_path = find_command_in_path(args[0]);
 	
-	/* If command not found, print error and DO NOT fork */
 	if (cmd_path == NULL)
 	{
 		print_error(program_name, cmd_count, args[0]);
@@ -43,7 +59,6 @@ int execute_command(char *command, char *program_name, int cmd_count)
 		return (1);
 	}
 
-	/* Command exists, now we can fork */
 	pid = fork();
 	if (pid == -1)
 	{
@@ -56,7 +71,6 @@ int execute_command(char *command, char *program_name, int cmd_count)
 
 	if (pid == 0)
 	{
-		/* Child process */
 		args[0] = cmd_path;
 		if (execve(cmd_path, args, environ) == -1)
 		{
@@ -69,7 +83,6 @@ int execute_command(char *command, char *program_name, int cmd_count)
 	}
 	else
 	{
-		/* Parent process */
 		do {
 			waitpid(pid, &status, WUNTRACED);
 		} while (!WIFEXITED(status) && !WIFSIGNALED(status));

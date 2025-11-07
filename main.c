@@ -37,7 +37,8 @@ int main(int argc, char **argv)
 			cmd_count++;
 			status = execute_command(trimmed, argv[0], cmd_count);
 
-			if (status == 0)
+			/* Check if exit was called */
+			if (status == -1)
 			{
 				free(line);
 				break;
