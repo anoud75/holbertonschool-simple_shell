@@ -31,8 +31,10 @@ int execute_command(char *command, char *program_name, int cmd_count)
 		return (1);
 	}
 
-	/* Find the command in PATH or use as-is if it's a path */
+	/* CRITICAL: Find command BEFORE forking */
 	cmd_path = find_command_in_path(args[0]);
+	
+	/* If command not found, print error and DO NOT fork */
 	if (cmd_path == NULL)
 	{
 		print_error(program_name, cmd_count, args[0]);
@@ -41,6 +43,7 @@ int execute_command(char *command, char *program_name, int cmd_count)
 		return (1);
 	}
 
+	/* Command exists, now we can fork */
 	pid = fork();
 	if (pid == -1)
 	{
@@ -53,6 +56,7 @@ int execute_command(char *command, char *program_name, int cmd_count)
 
 	if (pid == 0)
 	{
+		/* Child process */
 		args[0] = cmd_path;
 		if (execve(cmd_path, args, environ) == -1)
 		{
@@ -65,6 +69,7 @@ int execute_command(char *command, char *program_name, int cmd_count)
 	}
 	else
 	{
+		/* Parent process */
 		do {
 			waitpid(pid, &status, WUNTRACED);
 		} while (!WIFEXITED(status) && !WIFSIGNALED(status));

@@ -12,6 +12,9 @@ char *get_path(char *command)
 
 	(void)command;
 
+	if (environ == NULL)
+		return (NULL);
+
 	while (environ[i] != NULL)
 	{
 		if (strncmp(environ[i], "PATH=", 5) == 0)
@@ -29,34 +32,42 @@ char *get_path(char *command)
  */
 char *find_command_in_path(char *command)
 {
-	char *path_env = NULL;
-	char *path_copy = NULL;
-	char *dir = NULL;
-	char *full_path = NULL;
+	char *path_env = NULL, *path_copy = NULL, *dir = NULL, *full_path = NULL;
 	struct stat st;
 
-	if (command == NULL)
+	if (command == NULL || command[0] == '\0')
 		return (NULL);
 
-	/* If command contains '/', it's already a path */
+	/* If command contains '/', check if it exists directly */
 	if (strchr(command, '/') != NULL)
 	{
-		if (stat(command, &st) == 0)
+		if (stat(command, &st) == 0 && (st.st_mode & S_IXUSR))
 			return (strdup(command));
 		return (NULL);
 	}
 
+	/* Get PATH environment variable */
 	path_env = get_path(command);
-	if (path_env == NULL)
+	
+	/* If PATH is NULL or empty, command not found */
+	if (path_env == NULL || path_env[0] == '\0')
 		return (NULL);
 
 	path_copy = strdup(path_env);
 	if (path_copy == NULL)
 		return (NULL);
 
+	/* Search each directory in PATH */
 	dir = strtok(path_copy, ":");
 	while (dir != NULL)
 	{
+		/* Skip empty directory entries */
+		if (dir[0] == '\0')
+		{
+			dir = strtok(NULL, ":");
+			continue;
+		}
+
 		full_path = malloc(strlen(dir) + strlen(command) + 2);
 		if (full_path == NULL)
 		{
@@ -66,7 +77,7 @@ char *find_command_in_path(char *command)
 
 		sprintf(full_path, "%s/%s", dir, command);
 
-		if (stat(full_path, &st) == 0)
+		if (stat(full_path, &st) == 0 && (st.st_mode & S_IXUSR))
 		{
 			free(path_copy);
 			return (full_path);
