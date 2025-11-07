@@ -13,8 +13,8 @@ int execute_command(char *command, char *program_name, int cmd_count)
 	pid_t pid;
 	int status;
 	char **args = NULL;
-	struct stat st;
 	char *cmd_copy = NULL;
+	char *cmd_path = NULL;
 
 	if (command == NULL || command[0] == '\0')
 		return (1);
@@ -31,7 +31,9 @@ int execute_command(char *command, char *program_name, int cmd_count)
 		return (1);
 	}
 
-	if (stat(args[0], &st) == -1)
+	/* Find the command in PATH or use as-is if it's a path */
+	cmd_path = find_command_in_path(args[0]);
+	if (cmd_path == NULL)
 	{
 		print_error(program_name, cmd_count, args[0]);
 		free(cmd_copy);
@@ -43,6 +45,7 @@ int execute_command(char *command, char *program_name, int cmd_count)
 	if (pid == -1)
 	{
 		perror("fork");
+		free(cmd_path);
 		free(cmd_copy);
 		free_args(args);
 		return (1);
@@ -50,9 +53,11 @@ int execute_command(char *command, char *program_name, int cmd_count)
 
 	if (pid == 0)
 	{
-		if (execve(args[0], args, environ) == -1)
+		args[0] = cmd_path;
+		if (execve(cmd_path, args, environ) == -1)
 		{
 			print_error(program_name, cmd_count, args[0]);
+			free(cmd_path);
 			free(cmd_copy);
 			free_args(args);
 			exit(2);
@@ -65,6 +70,7 @@ int execute_command(char *command, char *program_name, int cmd_count)
 		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 	}
 
+	free(cmd_path);
 	free(cmd_copy);
 	free_args(args);
 	return (1);

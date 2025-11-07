@@ -18,5 +18,7 @@ void print_error(char *program_name, int cmd_number, char *command);
 char *trim_spaces(char *str);
 char **parse_args(char *line);
 void free_args(char **args);
+char *get_path(char *command);
+char *find_command_in_path(char *command);
 
 #endif
