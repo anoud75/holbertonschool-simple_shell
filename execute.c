@@ -1,8 +1,8 @@
 #include "shell.h"
 
 /**
- * execute_command - Executes a command
- * @command: The command to execute (full path)
+ * execute_command - Executes a command with arguments
+ * @command: The command line to execute
  * @program_name: Name of the shell program (for error messages)
  * @cmd_count: Current command count
  *
@@ -12,15 +12,30 @@ int execute_command(char *command, char *program_name, int cmd_count)
 {
 	pid_t pid;
 	int status;
-	char *args[2];
+	char **args = NULL;
 	struct stat st;
+	char *cmd_copy = NULL;
 
 	if (command == NULL || command[0] == '\0')
 		return (1);
 
-	if (stat(command, &st) == -1)
+	cmd_copy = strdup(command);
+	if (cmd_copy == NULL)
+		return (1);
+
+	args = parse_args(cmd_copy);
+	if (args == NULL || args[0] == NULL)
 	{
-		print_error(program_name, cmd_count, command);
+		free(cmd_copy);
+		free_args(args);
+		return (1);
+	}
+
+	if (stat(args[0], &st) == -1)
+	{
+		print_error(program_name, cmd_count, args[0]);
+		free(cmd_copy);
+		free_args(args);
 		return (1);
 	}
 
@@ -28,17 +43,18 @@ int execute_command(char *command, char *program_name, int cmd_count)
 	if (pid == -1)
 	{
 		perror("fork");
+		free(cmd_copy);
+		free_args(args);
 		return (1);
 	}
 
 	if (pid == 0)
 	{
-		args[0] = command;
-		args[1] = NULL;
-
-		if (execve(command, args, environ) == -1)
+		if (execve(args[0], args, environ) == -1)
 		{
-			print_error(program_name, cmd_count, command);
+			print_error(program_name, cmd_count, args[0]);
+			free(cmd_copy);
+			free_args(args);
 			exit(2);
 		}
 	}
@@ -49,5 +65,7 @@ int execute_command(char *command, char *program_name, int cmd_count)
 		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 	}
 
+	free(cmd_copy);
+	free_args(args);
 	return (1);
 }
