@@ -10,6 +10,7 @@
 int main(int argc, char **argv)
 {
 	char *line = NULL;
+	char *trimmed = NULL;
 	int cmd_count = 0;
 	int status;
 
@@ -29,12 +30,21 @@ int main(int argc, char **argv)
 			break;
 		}
 
-		cmd_count++;
-		status = execute_command(line, argv[0], cmd_count);
-		free(line);
+		trimmed = trim_spaces(line);
 
-		if (status == 0)
-			break;
+		if (trimmed[0] != '\0')
+		{
+			cmd_count++;
+			status = execute_command(trimmed, argv[0], cmd_count);
+
+			if (status == 0)
+			{
+				free(line);
+				break;
+			}
+		}
+
+		free(line);
 	}
 
 	return (0);

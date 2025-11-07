@@ -15,5 +15,6 @@ void display_prompt(void);
 char *read_line(void);
 int execute_command(char *command, char *program_name, int cmd_count);
 void print_error(char *program_name, int cmd_number, char *command);
+char *trim_spaces(char *str);
 
 #endif
