@@ -5,319 +5,124 @@ hsh \- simple UNIX command line interpreter
 
 .SH SYNOPSIS
 .B hsh
-.RI [ command_file ]
 
 .SH DESCRIPTION
 .B hsh
-is a simple UNIX command language interpreter that executes commands read from the standard input or from a file. This implementation replicates basic functionality of the
+is a simple UNIX command interpreter that executes commands read from standard input or from a file. It replicates basic functionality of the
 .B sh
-shell, providing a command-line interface for user interaction with the operating system.
-
-.SH OVERVIEW
-The simple shell is a command interpreter that reads lines from either a file or the terminal, interprets them, and executes other commands. It is designed to be a simplified version of traditional UNIX shells while maintaining core functionality for command execution and process management.
+shell.
 
 .SH INVOCATION
-The shell can be invoked both interactively and non-interactively.
+The shell can be invoked interactively or non-interactively.
 
 .SS Interactive Mode
-If
+When
 .B hsh
-is invoked with standard input connected to a terminal (as determined by
-.BR isatty (3)),
-the shell is interactive. In this mode, the shell displays a prompt
-.RB ( "$ " )
-before reading each command.
+is invoked with standard input connected to a terminal, it displays a prompt and waits for commands.
 
 .PP
-.in +4n
-.EX
+Example:
+.PP
+.nf
+.RS
 $ ./hsh
 $ /bin/ls
 file1 file2
 $ exit
 $
-.EE
-.in
+.RE
+.fi
 
 .SS Non-Interactive Mode
-If standard input is not connected to a terminal, or if the shell is invoked with commands supplied through a pipe or input redirection, it operates in non-interactive mode.
-
+Commands can be piped to the shell:
 .PP
-.in +4n
-.EX
+.nf
+.RS
 $ echo "/bin/ls" | ./hsh
 file1 file2
 $
-.EE
-.in
+.RE
+.fi
 
 .SH COMMAND EXECUTION
-When a command is entered, the shell performs the following steps:
-
+The shell executes commands as follows:
 .IP 1. 4
-Reads the input line
+Reads input line
 .IP 2. 4
-Parses the line into command and arguments
+Parses command and arguments
 .IP 3. 4
-Checks if the command is a built-in
+Checks for built-in commands
 .IP 4. 4
-If not built-in, searches for the command in PATH
+Searches PATH for executable
 .IP 5. 4
-Executes the command in a child process
+Executes command in child process
 .IP 6. 4
-Waits for the command to complete
-.IP 7. 4
-Displays the prompt again (interactive mode)
+Waits for completion
 
 .SS PATH Search
-If a command name does not contain a slash
-.RB ( / ),
-the shell searches for an executable file matching the command name in the directories listed in the
-.B PATH
-environment variable. The search proceeds through each directory in PATH order until an executable file is found or all directories have been searched.
-
-.PP
-If the command name contains a slash, the shell attempts to execute the file at the specified path without PATH search.
-
-.SH COMMAND LINE FORMAT
-A command line consists of a command name optionally followed by arguments, separated by spaces:
-
-.PP
-.in +4n
-.EX
-command [arg1] [arg2] ... [argN]
-.EE
-.in
-
-.PP
-Leading and trailing spaces are ignored.
+If a command does not contain a slash (/), the shell searches directories in the PATH environment variable. If the command contains a slash, it executes the file at that path.
 
 .SH BUILT-IN COMMANDS
-The following built-in commands are supported:
-
 .TP
 .B exit
-Exit the shell with the status of the last executed command.
-.IP
-.B Syntax:
-exit
-.IP
-.B Example:
-.EX
-$ exit
-.EE
-
+Exit the shell with the status of the last command.
 .TP
 .B env
-Print the current environment variables, one per line.
-.IP
-.B Syntax:
-env
-.IP
-.B Example:
-.EX
-$ env
-USER=holberton
-HOME=/home/holberton
-PATH=/usr/local/sbin:/usr/local/bin
-...
-.EE
+Print the current environment variables.
 
 .SH ENVIRONMENT
 .TP
 .B PATH
-The search path for commands. It is a colon-separated list of directories in which the shell looks for commands that do not contain a slash in their name.
-.IP
-.B Example:
-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-.TP
-.B HOME
-The home directory of the current user.
-
-.TP
-.B USER
-The username of the current user.
+Colon-separated list of directories to search for commands.
 
 .SH EXIT STATUS
-The shell returns the exit status of the last command executed. The exit status is a number between 0 and 255.
-
+The shell returns the exit status of the last command executed.
 .TP
 .B 0
-Successful execution
-.TP
-.B 1-125
-Command-specific error codes
-.TP
-.B 126
-Command found but not executable
+Success
 .TP
 .B 127
 Command not found
 .TP
-.B 128+N
-Command terminated by signal N
-
-.PP
-Built-in commands return 0 on success.
+.B 2
+Command failed
 
 .SH EXAMPLES
-
-.SS Example 1: Simple Commands
-.EX
+.TP
+Execute a command:
+.nf
 $ ./hsh
 $ ls
-file1 file2 file3
-$ pwd
-/home/user/simple_shell
-$ exit
-$
-.EE
-
-.SS Example 2: Commands with Arguments
-.EX
-$ ./hsh
-$ ls -l /tmp
-total 8
-drwx------ 2 user user 4096 Nov  7 10:00 test
-$ echo Hello World
-Hello World
-$ exit
-$
-.EE
-
-.SS Example 3: Non-Interactive Mode
-.EX
-$ echo "ls" | ./hsh
-file1 file2 file3
-$ echo "pwd" | ./hsh
-/home/user/simple_shell
-.EE
-
-.SS Example 4: Using Full Path
-.EX
-$ ./hsh
-$ /bin/ls
 file1 file2
-$ /bin/echo test
-test
-$ exit
-$
-.EE
-
-.SS Example 5: Error Handling
-.EX
+.fi
+.TP
+Execute with arguments:
+.nf
 $ ./hsh
-$ invalidcommand
-./hsh: 1: invalidcommand: not found
-$ exit
-$
-.EE
+$ ls -l
+total 48
+.fi
+.TP
+Non-interactive:
+.nf
+$ echo "ls" | ./hsh
+file1 file2
+.fi
 
 .SH ERRORS
-When an error occurs, the shell prints an error message to standard error in the following format:
-
+Error messages are printed to stderr in the format:
 .PP
-.in +4n
-.EX
-./hsh: [line_number]: [command]: [error_message]
-.EE
-.in
-
-.PP
-Common errors include:
-
-.TP
-.B Command not found
-The specified command could not be found in PATH or at the given path.
-.IP
-.B Example:
-./hsh: 1: invalidcmd: not found
-
-.TP
-.B Permission denied
-The command file exists but is not executable.
-
-.TP
-.B No such file or directory
-A file or directory specified as an argument does not exist.
-
-.SH SIGNALS
-.TP
-.B SIGINT (Ctrl+C)
-In interactive mode, SIGINT is handled to display a new prompt without exiting the shell.
-
-.TP
-.B EOF (Ctrl+D)
-Typing Ctrl+D sends an EOF signal. In interactive mode, this causes the shell to exit gracefully.
-
-.SH LIMITATIONS
-This simple shell does not support:
-
-.IP \(bu 2
-Semicolons (;) for command separators
-.IP \(bu 2
-Pipes (|) for command chaining
-.IP \(bu 2
-Redirections (<, >, >>)
-.IP \(bu 2
-Background processes (&)
-.IP \(bu 2
-Command substitution
-.IP \(bu 2
-Wildcards (*, ?)
-.IP \(bu 2
-Variable expansion ($VAR)
-.IP \(bu 2
-Quotes handling (", ', `)
-.IP \(bu 2
-Special characters (\\, #)
-.IP \(bu 2
-Command history
-.IP \(bu 2
-Line editing
-.IP \(bu 2
-Job control
-
-.SH FILES
-.TP
-.I /bin/sh
-The standard system shell (for comparison)
-
-.SH BUGS
-No known bugs at this time. Report bugs to the project repository.
+./hsh: [line]: [command]: not found
 
 .SH AUTHORS
 Alharbi Reja Turki, Alsmail Saud Alanoud
 
-.PP
-For a complete list of contributors, see the AUTHORS file in the project repository.
-
 .SH SEE ALSO
 .BR sh (1),
 .BR bash (1),
-.BR dash (1),
 .BR execve (2),
 .BR fork (2),
-.BR wait (2),
-.BR waitpid (2),
-.BR getline (3),
-.BR strtok (3),
-.BR getenv (3),
-.BR environ (7)
-
-.SH STANDARDS
-This shell is designed to replicate basic functionality of
-.BR sh (1)
-as specified in POSIX.1-2008, though it is a simplified implementation for educational purposes.
+.BR wait (2)
 
 .SH HISTORY
-This simple shell was created as part of the Holberton School curriculum in November 2025. It serves as an introduction to system programming, process management, and the inner workings of UNIX shells.
-
-.SH COPYRIGHT
-This is free software: you are free to change and redistribute it for educational purposes.
-
-.SH COLOPHON
-This page is part of the
-.I simple_shell
-project documentation.
+Created as part of Holberton School curriculum, November 2025.
