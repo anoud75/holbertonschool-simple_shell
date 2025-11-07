@@ -26,6 +26,7 @@ int main(int argc, char **argv)
 
 		if (line == NULL)
 		{
+			/* EOF reached */
 			if (isatty(STDIN_FILENO))
 				write(STDOUT_FILENO, "\n", 1);
 			break;
@@ -38,16 +39,17 @@ int main(int argc, char **argv)
 			cmd_count++;
 			exec_status = execute_command(trimmed, argv[0], cmd_count, &last_status);
 
-			/* Check if exit was called */
 			if (exec_status == -1)
 			{
+				/* Exit command was called - exit with last status */
 				free(line);
-				break;
+				exit(last_status);
 			}
 		}
 
 		free(line);
 	}
 
-	return (last_status);
+	/* EOF reached - exit with last status */
+	exit(last_status);
 }

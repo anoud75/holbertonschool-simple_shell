@@ -36,12 +36,14 @@ int execute_command(char *command, char *program_name, int cmd_count, int *last_
 	builtin_result = handle_builtin(args, *last_status);
 	if (builtin_result == -1)
 	{
+		/* Exit built-in - clean up and signal exit */
 		free(cmd_copy);
 		free_args(args);
 		return (-1);
 	}
 	if (builtin_result == 1)
 	{
+		/* Other built-in was executed */
 		free(cmd_copy);
 		free_args(args);
 		return (1);
@@ -53,7 +55,7 @@ int execute_command(char *command, char *program_name, int cmd_count, int *last_
 	if (cmd_path == NULL)
 	{
 		print_error(program_name, cmd_count, args[0]);
-		*last_status = 127; /* Command not found */
+		*last_status = 127;
 		free(cmd_copy);
 		free_args(args);
 		return (1);
@@ -63,6 +65,7 @@ int execute_command(char *command, char *program_name, int cmd_count, int *last_
 	if (pid == -1)
 	{
 		perror("fork");
+		*last_status = 1;
 		free(cmd_path);
 		free(cmd_copy);
 		free_args(args);
@@ -71,6 +74,7 @@ int execute_command(char *command, char *program_name, int cmd_count, int *last_
 
 	if (pid == 0)
 	{
+		/* Child process */
 		args[0] = cmd_path;
 		if (execve(cmd_path, args, environ) == -1)
 		{
@@ -83,11 +87,12 @@ int execute_command(char *command, char *program_name, int cmd_count, int *last_
 	}
 	else
 	{
+		/* Parent process - wait for child */
 		do {
 			waitpid(pid, &status, WUNTRACED);
 		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 
-		/* Get the exit status of the child process */
+		/* Capture exit status */
 		if (WIFEXITED(status))
 			*last_status = WEXITSTATUS(status);
 		else if (WIFSIGNALED(status))

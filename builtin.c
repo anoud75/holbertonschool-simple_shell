@@ -10,14 +10,15 @@
  */
 int handle_builtin(char **args, int last_status)
 {
+	(void)last_status;
+
 	if (args == NULL || args[0] == NULL)
 		return (0);
 
 	/* Check for exit built-in */
 	if (strcmp(args[0], "exit") == 0)
 	{
-		/* Exit with the last command's status */
-		exit(last_status);
+		return (-1); /* Signal to exit, main will handle actual exit */
 	}
 
 	/* Not a built-in command */
