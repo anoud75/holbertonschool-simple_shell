@@ -1,0 +1,100 @@
+.TH HSH 1 "November 2025" "1.0" "Simple Shell Manual"
+
+.SH NAME
+hsh \- simple command line interpreter
+
+.SH SYNOPSIS
+.B hsh
+[\fIcommand\fR]
+
+.SH DESCRIPTION
+.B hsh
+is a simple UNIX command language interpreter that executes commands read from the standard input or from a file. This shell is designed to replicate basic functionality of the sh shell.
+
+.SH OVERVIEW
+The simple shell is a command that reads lines from either a file or the terminal, interprets them, and generally executes other commands. It is the program that is running when a user logs into the system.
+
+.SH RETURN VALUE
+The shell returns the exit status of the last command executed, unless a syntax error occurs, with zero indicating success and non-zero indicating failure.
+
+.SH SYNTAX
+.B hsh
+[\fIcommand_string\fR | \fIfile\fR]
+
+.SH INVOCATION
+The shell can be invoked both interactively and non-interactively. If invoked interactively, the shell displays a prompt ($) and waits for user input.
+
+.SS Interactive Mode
+When invoked interactively, the shell displays a prompt and waits for the user to type a command:
+.PP
+.nf
+.RS
+$ ./hsh
+($) /bin/ls
+file1 file2
+($) exit
+$
+.RE
+.fi
+
+.SS Non-Interactive Mode
+In non-interactive mode, the shell reads commands from standard input and executes them:
+.PP
+.nf
+.RS
+$ echo "/bin/ls" | ./hsh
+file1 file2
+$
+.RE
+.fi
+
+.SH COMMAND EXECUTION
+The shell locates commands in the following manner:
+.IP 1. 4
+If the command name contains a slash (/), the shell executes the program at the specified path
+.IP 2. 4
+If the command name does not contain a slash, the shell searches for the command in the PATH environment variable
+
+.SH BUILT-IN COMMANDS
+The following built-in commands are supported:
+.TP
+.B exit
+Exit the shell
+.TP
+.B env
+Print the current environment
+
+.SH ENVIRONMENT
+.TP
+.B PATH
+The search path for commands. It is a colon-separated list of directories in which the shell looks for commands.
+
+.SH EXIT STATUS
+Errors that are detected by the shell, such as a syntax error, will cause the shell to exit with a non-zero exit status. Otherwise, the shell returns the exit status of the last command executed.
+
+.SH EXAMPLES
+.TP
+Execute a command:
+.nf
+($) /bin/ls
+file1 file2 file3
+.fi
+.TP
+Execute a command with arguments:
+.nf
+($) /bin/ls -l
+total 4
+-rw-r--r-- 1 user user 50 Nov 7 10:00 file1
+.fi
+
+.SH BUGS
+No known bugs at this time.
+
+.SH AUTHORS
+Alharbi Reja Turki, Alsmail Saud Alanoud
+
+.SH SEE ALSO
+sh(1), bash(1), execve(2), fork(2), wait(2)
+
+.SH HISTORY
+This simple shell was created as part of the Holberton School curriculum in November 2025.
