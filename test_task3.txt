@@ -1,0 +1,5 @@
+/bin/ls
+/bin/ls -l
+/bin/echo Hello World
+/bin/pwd
+/bin/ls -la
