@@ -13,13 +13,13 @@ extern char **environ;
 
 void display_prompt(void);
 char *read_line(void);
-int execute_command(char *command, char *program_name, int cmd_count);
+int execute_command(char *command, char *program_name, int cmd_count, int *last_status);
 void print_error(char *program_name, int cmd_number, char *command);
 char *trim_spaces(char *str);
 char **parse_args(char *line);
 void free_args(char **args);
 char *get_path(char *command);
 char *find_command_in_path(char *command);
-int handle_builtin(char **args);
+int handle_builtin(char **args, int last_status);
 
 #endif

@@ -5,14 +5,15 @@
  * @argc: Argument count
  * @argv: Argument vector
  *
- * Return: Always 0 (Success)
+ * Return: Exit status of last command
  */
 int main(int argc, char **argv)
 {
 	char *line = NULL;
 	char *trimmed = NULL;
 	int cmd_count = 0;
-	int status;
+	int exec_status;
+	int last_status = 0;
 
 	(void)argc;
 
@@ -35,10 +36,10 @@ int main(int argc, char **argv)
 		if (trimmed[0] != '\0')
 		{
 			cmd_count++;
-			status = execute_command(trimmed, argv[0], cmd_count);
+			exec_status = execute_command(trimmed, argv[0], cmd_count, &last_status);
 
 			/* Check if exit was called */
-			if (status == -1)
+			if (exec_status == -1)
 			{
 				free(line);
 				break;
@@ -48,5 +49,5 @@ int main(int argc, char **argv)
 		free(line);
 	}
 
-	return (0);
+	return (last_status);
 }

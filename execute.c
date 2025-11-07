@@ -5,10 +5,11 @@
  * @command: The command line to execute
  * @program_name: Name of the shell program (for error messages)
  * @cmd_count: Current command count
+ * @last_status: Pointer to store last exit status
  *
- * Return: 1 to continue execution, -1 to exit, 0 for other
+ * Return: 1 to continue execution, -1 to exit
  */
-int execute_command(char *command, char *program_name, int cmd_count)
+int execute_command(char *command, char *program_name, int cmd_count, int *last_status)
 {
 	pid_t pid;
 	int status, builtin_result;
@@ -32,17 +33,15 @@ int execute_command(char *command, char *program_name, int cmd_count)
 	}
 
 	/* Check if it's a built-in command */
-	builtin_result = handle_builtin(args);
+	builtin_result = handle_builtin(args, *last_status);
 	if (builtin_result == -1)
 	{
-		/* Exit built-in */
 		free(cmd_copy);
 		free_args(args);
 		return (-1);
 	}
 	if (builtin_result == 1)
 	{
-		/* Built-in was executed */
 		free(cmd_copy);
 		free_args(args);
 		return (1);
@@ -54,6 +53,7 @@ int execute_command(char *command, char *program_name, int cmd_count)
 	if (cmd_path == NULL)
 	{
 		print_error(program_name, cmd_count, args[0]);
+		*last_status = 127; /* Command not found */
 		free(cmd_copy);
 		free_args(args);
 		return (1);
@@ -78,7 +78,7 @@ int execute_command(char *command, char *program_name, int cmd_count)
 			free(cmd_path);
 			free(cmd_copy);
 			free_args(args);
-			exit(2);
+			exit(127);
 		}
 	}
 	else
@@ -86,6 +86,12 @@ int execute_command(char *command, char *program_name, int cmd_count)
 		do {
 			waitpid(pid, &status, WUNTRACED);
 		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+
+		/* Get the exit status of the child process */
+		if (WIFEXITED(status))
+			*last_status = WEXITSTATUS(status);
+		else if (WIFSIGNALED(status))
+			*last_status = 128 + WTERMSIG(status);
 	}
 
 	free(cmd_path);
