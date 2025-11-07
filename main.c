@@ -50,6 +50,4 @@ int main(int argc, char **argv)
 		free(line);
 	}
 
-	/* EOF reached - exit with last status */
-	exit(last_status);
-}
+	/* EOF

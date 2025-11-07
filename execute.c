@@ -43,7 +43,8 @@ int execute_command(char *command, char *program_name, int cmd_count, int *last_
 	}
 	if (builtin_result == 1)
 	{
-		/* Other built-in was executed */
+		/* Built-in was executed successfully - set status to 0 */
+		*last_status = 0;
 		free(cmd_copy);
 		free_args(args);
 		return (1);

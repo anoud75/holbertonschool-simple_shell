@@ -3,14 +3,14 @@
 /**
  * print_env - Print the environment variables
  *
- * Return: void
+ * Return: Always 0 (success)
  */
-void print_env(void)
+int print_env(void)
 {
 	int i = 0;
 
 	if (environ == NULL)
-		return;
+		return (0);
 
 	while (environ[i] != NULL)
 	{
@@ -18,12 +18,14 @@ void print_env(void)
 		write(STDOUT_FILENO, "\n", 1);
 		i++;
 	}
+	
+	return (0);
 }
 
 /**
  * handle_builtin - Handle built-in commands
  * @args: Array of command arguments
- * @last_status: Last command exit status
+ * @last_status: Last command exit status (preserved for exit)
  *
  * Return: 1 if builtin was executed, 0 if not a builtin,
  *         -1 to exit shell with last_status
@@ -45,7 +47,7 @@ int handle_builtin(char **args, int last_status)
 	if (strcmp(args[0], "env") == 0)
 	{
 		print_env();
-		return (1); /* Built-in was executed */
+		return (1); /* Built-in was executed successfully */
 	}
 
 	/* Not a built-in command */
