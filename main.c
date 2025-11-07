@@ -10,33 +10,31 @@
 int main(int argc, char **argv)
 {
 	char *line = NULL;
-	char **args = NULL;
-	int status = 1;
+	int cmd_count = 0;
+	int status;
 
 	(void)argc;
-	(void)argv;
 
-	while (status)
+	while (1)
 	{
 		if (isatty(STDIN_FILENO))
 			display_prompt();
 
 		line = read_line();
+		
 		if (line == NULL)
-			break;
-
-		args = parse_line(line);
-		if (args == NULL || args[0] == NULL)
 		{
-			free(line);
-			free(args);
-			continue;
+			if (isatty(STDIN_FILENO))
+				write(STDOUT_FILENO, "\n", 1);
+			break;
 		}
 
-		status = execute_command(args);
-
+		cmd_count++;
+		status = execute_command(line, argv[0], cmd_count);
 		free(line);
-		free(args);
+
+		if (status == 0)
+			break;
 	}
 
 	return (0);
